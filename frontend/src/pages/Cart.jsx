@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { getCart, updateCartItem, removeCartItem } from "../api";
+import { useNavigate } from "react-router-dom";
+import { getCart, updateCartItem, removeCartItem, placeOrder } from "../api";
 export default function Cart() {
+  const navigate = useNavigate();
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -48,6 +50,16 @@ export default function Cart() {
       setUpdating(null);
     }
   };
+
+  const handlePlaceOrder = async () => {
+  try {
+    await placeOrder();
+    fetchCart(); // optional refresh
+    navigate("/orders"); // redirect properly
+  } catch {
+    setError("Order failed");
+  }
+};
 
   const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
@@ -107,7 +119,18 @@ export default function Cart() {
           </tbody>
         </table>
       )}
-      <div className="total">Total Amount: ${total.toFixed(2)}</div>
+      <div className="total" style={{ marginTop: 20 }}>
+  <h3>Total Amount: ${total.toFixed(2)}</h3>
+
+  <button
+    className="button"
+    style={{ marginTop: 10 }}
+    onClick={handlePlaceOrder}
+    disabled={cart.length === 0}
+  >
+    Place Order
+  </button>
+ </div>
     </div>
   );
 }

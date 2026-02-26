@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { getOrders, placeOrder } from "../api";
+import { getOrders } from "../api";
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [placed, setPlaced] = useState(false);
+  
 
   const fetchOrders = () => {
     setLoading(true);
@@ -18,27 +18,10 @@ export default function Orders() {
     fetchOrders();
   }, []);
 
-  const handlePlaceOrder = async () => {
-    try {
-      await placeOrder();
-      setPlaced(true);
-      fetchOrders();
-    } catch {
-      setError("Order failed");
-    }
-  };
 
   return (
     <div className="container">
       <div className="heading">Orders</div>
-      <button
-        className="button"
-        onClick={handlePlaceOrder}
-        disabled={placed}
-        style={{ marginBottom: 18 }}
-      >
-        {placed ? "Order Placed!" : "Place Order"}
-      </button>
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
@@ -48,19 +31,29 @@ export default function Orders() {
           <thead>
             <tr>
               <th>Order ID</th>
+              <th>Products</th>
               <th>Total Amount</th>
-              <th>Date</th>
-            </tr>
+             </tr>
           </thead>
+ 
+          
           <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td>{order.id}</td>
-                <td>${order.total_amount}</td>
-                <td>{order.date ? new Date(order.date).toLocaleString() : "-"}</td>
-              </tr>
-            ))}
-          </tbody>
+  {orders.map((order) => (
+    <tr key={order.id}>
+      <td>{order.id}</td>
+
+      <td>
+        {order.items.map((item) => (
+          <div key={item.id}>
+            {item.product.name} (x{item.quantity})
+          </div>
+        ))}
+      </td>
+
+      <td>${order.total_amount}</td>
+    </tr>
+  ))}
+</tbody>
         </table>
       )}
     </div>
