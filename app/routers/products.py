@@ -1,12 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from .. import models, schemas, auth, database
 
 router = APIRouter()
 
+
 @router.get("/", response_model=list[schemas.Product])
-def get_products(db: Session = Depends(database.get_db)):
-    products = db.query(models.Product).all()
+def get_products(
+    db: Session = Depends(database.get_db),
+    search: str = Query(None, description="Search by product name"),
+    min_price: float = Query(None, description="Minimum price"),
+    max_price: float = Query(None, description="Maximum price")
+):
+    query = db.query(models.Product)
+    filters = []
+    if search:
+        filters.append(models.Product.name.ilike(f"%{search}%"))
+    if min_price is not None:
+        filters.append(models.Product.price >= min_price)
+    if max_price is not None:
+        filters.append(models.Product.price <= max_price)
+    if filters:
+        query = query.filter(and_(*filters))
+    products = query.all()
     return products
 
 @router.get("/{product_id}", response_model=schemas.Product)

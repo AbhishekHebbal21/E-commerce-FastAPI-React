@@ -19,7 +19,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
         name=user.name,
         email=user.email,
         password=hashed_password,
-        role="admin"   # <-- added
+        role="user"   
     )
 
     db.add(db_user)

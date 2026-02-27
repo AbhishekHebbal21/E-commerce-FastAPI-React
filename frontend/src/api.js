@@ -27,7 +27,7 @@ export const login = (data) =>
     { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
   );
 
-export const getProducts = () => api.get("/products");
+export const getProducts = (config = {}) => api.get("/products", config);
 export const createProduct = (data) => api.post("/products", data);
 
 export const getCart = () => api.get("/cart");

@@ -7,6 +7,7 @@ export default function Cart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [quantities, setQuantities] = useState({});
+  const [paying, setPaying] = useState(false);
   const [updating, setUpdating] = useState(null);
 
   const fetchCart = () => {
@@ -51,13 +52,17 @@ export default function Cart() {
     }
   };
 
-  const handlePlaceOrder = async () => {
+
+  const handlePayNow = async () => {
+  setError("");
+  setPaying(true);
   try {
     await placeOrder();
-    fetchCart(); // optional refresh
-    navigate("/orders"); // redirect properly
-  } catch {
-    setError("Order failed");
+    navigate("/orders");
+  } catch (err) {
+    setError("Payment failed");
+  } finally {
+    setPaying(false);
   }
 };
 
@@ -125,10 +130,10 @@ export default function Cart() {
   <button
     className="button"
     style={{ marginTop: 10 }}
-    onClick={handlePlaceOrder}
-    disabled={cart.length === 0}
+    onClick={handlePayNow}
+    disabled={cart.length === 0 || paying}
   >
-    Place Order
+    {paying ? "Processing..." : "Pay Now"}
   </button>
  </div>
     </div>

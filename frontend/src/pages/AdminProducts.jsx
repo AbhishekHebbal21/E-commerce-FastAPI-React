@@ -1,13 +1,18 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../auth";
 import { Navigate } from "react-router-dom";
+import { getProducts } from "../api";
 
 export default function AdminProducts() {
   const { user } = useAuth();
   const [form, setForm] = useState({ name: "", description: "", price: "", stock: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   if (!user || user.role !== "admin") return <Navigate to="/" />;
 
@@ -26,8 +31,52 @@ export default function AdminProducts() {
     setForm({ name: "", description: "", price: "", stock: "" });
   };
 
+  // Fetch products with filters
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const params = {};
+        if (search) params.search = search;
+        if (minPrice) params.min_price = minPrice;
+        if (maxPrice) params.max_price = maxPrice;
+        const res = await getProducts({ params });
+        setProducts(res.data);
+      } catch (err) {
+        setProducts([]);
+      }
+    };
+    fetchProducts();
+  }, [search, minPrice, maxPrice]);
+
   return (
     <div className="container">
+      <div className="heading">Product Filters</div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <input
+          className="form-input"
+          type="text"
+          placeholder="Search by name"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <input
+          className="form-input"
+          type="number"
+          min="0"
+          placeholder="Min price"
+          value={minPrice}
+          onChange={e => setMinPrice(e.target.value)}
+        />
+        <input
+          className="form-input"
+          type="number"
+          min="0"
+          placeholder="Max price"
+          value={maxPrice}
+          onChange={e => setMaxPrice(e.target.value)}
+        />
+      </div>
+
       <div className="heading">Create Product</div>
       <form className="form" onSubmit={handleSubmit}>
         <label className="form-label">Name</label>
@@ -64,6 +113,15 @@ export default function AdminProducts() {
         {error && <div style={{ color: "#d32f2f" }}>{error}</div>}
         {success && <div style={{ color: "#388e3c" }}>{success}</div>}
       </form>
+
+      <div className="heading" style={{ marginTop: 32 }}>Products</div>
+      <ul>
+        {products.map((p) => (
+          <li key={p.id}>
+            <b>{p.name}</b> - ${p.price} ({p.stock} in stock)
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
